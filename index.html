@@ -1,163 +1,270 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scunthorpe DN Area & Street Map - Downloadable</title>
+<title>Scunthorpe DN + Ward Area Map - Searchable</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f7fa; color: #1a1a1a; }
-  header { background: #0f2a44; color: white; padding: 16px 20px; }
-  header h1 { font-size: 20px; margin-bottom: 4px; }
-  header p { font-size: 13px; opacity: 0.85; }
-  .container { display: flex; height: calc(100vh - 70px); }
-  .sidebar { width: 340px; background: white; padding: 18px; overflow-y: auto; border-right: 1px solid #e0e0e0; }
-  .sidebar h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #666; margin: 18px 0 10px; }
-  .sidebar h2:first-child { margin-top: 0; }
-  .search-box { display: flex; gap: 8px; }
-  .search-box input { flex: 1; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
-  .search-box button { padding: 10px 14px; background: #0f2a44; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-  .search-box button:hover { background: #163a5f; }
-  .dn-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.15s; }
-  .dn-card:hover { border-color: #0f2a44; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .dn-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: 700; color: white; margin-bottom: 6px; }
-  .dn15 .dn-badge { background: #2563eb; } .dn15 { border-left: 4px solid #2563eb; }
-  .dn16 .dn-badge { background: #16a34a; } .dn16 { border-left: 4px solid #16a34a; }
-  .dn17 .dn-badge { background: #ea580c; } .dn17 { border-left: 4px solid #ea580c; }
-  .dn-card strong { display: block; font-size: 14px; }
-  .dn-card span { font-size: 12.5px; color: #555; line-height: 1.4; display: block; margin-top: 4px; }
-  #map { flex: 1; }
-  .legend { background: white; padding: 10px 12px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); font-size: 12px; line-height: 1.6; }
-  .legend i { width: 14px; height: 14px; display: inline-block; margin-right: 6px; vertical-align: middle; border-radius: 2px; }
-  .result-list { margin-top: 12px; }
-  .result-item { padding: 8px 10px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer; }
-  .result-item:hover { background: #eef2ff; }
-  .note { font-size: 11.5px; color: #6b7280; margin-top: 16px; background: #f9fafb; padding: 10px; border-radius: 8px; }
-  @media (max-width: 800px) { .container { flex-direction: column; } .sidebar { width: 100%; height: auto; } #map { height: 60vh; } }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f7fa;color:#1a1a1a}
+  header{background:#0f2a44;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  header h1{font-size:18px}
+  header p{font-size:12px;opacity:.85}
+  .container{display:flex;height:calc(100vh - 62px)}
+  .sidebar{width:380px;background:#fff;padding:16px;overflow-y:auto;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;gap:14px}
+  .sidebar h2{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:#666;margin-top:4px}
+  .search-box{display:flex;gap:6px}
+  .search-box input, .search-box select{flex:1;padding:10px 12px;border:1px solid #ccc;border-radius:8px;font-size:13px}
+  .search-box button{padding:10px 14px;background:#0f2a44;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px}
+  .search-box button:hover{background:#163a5f}
+  .toggle-row{display:flex;gap:8px;align-items:center;font-size:12px}
+  .toggle-row label{display:flex;gap:5px;align-items:center;cursor:pointer;background:#f3f4f6;padding:6px 10px;border-radius:20px;border:1px solid #e5e7eb}
+  .dn-card, .ward-card{border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:.15s;font-size:13px}
+  .dn-card:hover, .ward-card:hover{border-color:#0f2a44;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .dn-badge, .ward-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;margin-bottom:4px}
+  .dn15 .dn-badge{background:#2563eb}.dn15{border-left:4px solid #2563eb}
+  .dn16 .dn-badge{background:#16a34a}.dn16{border-left:4px solid #16a34a}
+  .dn17 .dn-badge{background:#ea580c}.dn17{border-left:4px solid #ea580c}
+  .ward-card{border-left-width:4px}
+  #map{flex:1}
+  .legend{background:#fff;padding:10px 12px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.15);font-size:11px;line-height:1.6;max-height:220px;overflow:auto}
+  .legend i{width:12px;height:12px;display:inline-block;margin-right:6px;vertical-align:middle;border-radius:2px}
+  .result-list{max-height:260px;overflow:auto}
+  .result-item{padding:8px 10px;background:#f8fafc;border-radius:8px;margin-bottom:6px;font-size:12.5px;cursor:pointer;border:1px solid transparent}
+  .result-item:hover{background:#eef2ff;border-color:#c7d2fe}
+  .result-item b{color:#0f2a44}
+  .note{font-size:11px;color:#6b7280;background:#f9fafb;padding:10px;border-radius:8px;line-height:1.5}
+  .pill{display:inline-block;padding:2px 6px;border-radius:10px;font-size:10px;font-weight:600;margin-right:4px}
+  .pill-dn{background:#dbeafe;color:#1e40af}.pill-ward{background:#fef3c7;color:#92400e}.pill-postcode{background:#dcfce7;color:#166534}
+  @media(max-width:900px){.container{flex-direction:column}.sidebar{width:100%;height:auto}#map{height:60vh}}
 </style>
 </head>
 <body>
 <header>
-  <h1>Scunthorpe DN Area & Street Checker Map</h1>
-  <p>Search any street/postcode • DN15 / DN16 / DN17 boundaries • Downloadable & printable</p>
+  <div>
+    <h1>Scunthorpe DN + Ward Area Checker</h1>
+    <p>Search street / postcode → get DN district + Council Ward • Downloadable • North Lincolnshire Wards 2023</p>
+  </div>
+  <div style="font-size:11px;background:#ffffff20;padding:6px 10px;border-radius:8px">DN15 • DN16 • DN17 + 12 Wards</div>
 </header>
 <div class="container">
   <div class="sidebar">
-    <h2>Check Street / Postcode</h2>
+    <h2>1. Check Street / Postcode → Ward & DN</h2>
     <div class="search-box">
-      <input id="searchInput" placeholder="e.g. High Street or DN15 6..." />
+      <input id="searchInput" placeholder="e.g. Ashby High Street, DN16 2..." />
       <button onclick="searchStreet()">Search</button>
     </div>
     <div id="searchResults" class="result-list"></div>
 
-    <h2>DN Postcode Districts</h2>
-    <div class="dn-card dn15" onclick="focusArea('DN15')">
-      <span class="dn-badge">DN15</span>
-      <strong>Central & South-East Scunthorpe</strong>
-      <span>Town centre, Frodingham, Brumby, Ashby High Street, Bottesford Moor, Winterton, Burton-upon-Stather. Main commercial area.</span>
+    <h2>2. Check Ward Area Directly</h2>
+    <div class="search-box">
+      <select id="wardSelect">
+        <option value="">-- Select a Ward to Highlight --</option>
+      </select>
+      <button onclick="focusSelectedWard()">Go</button>
     </div>
-    <div class="dn-card dn16" onclick="focusArea('DN16')">
-      <span class="dn-badge">DN16</span>
-      <strong>West & South-West Scunthorpe</strong>
-      <span>Ashby, Bottesford, Bottesford Moor, Scunthorpe General Hospital, Lakeside, Holme Hall. Predominantly residential.</span>
-    </div>
-    <div class="dn-card dn17" onclick="focusArea('DN17')">
-      <span class="dn-badge">DN17</span>
-      <strong>North Scunthorpe & Villages</strong>
-      <span>Gunness, Burringham, Althorpe, Keadby, Messingham, Crowle, Eastoft, Luddington. More rural / industrial north bank.</span>
+    <div class="search-box" style="margin-top:6px">
+      <input id="wardSearchInput" placeholder="Type ward e.g. Crosby" />
+      <button onclick="searchWardByName()">Find</button>
     </div>
 
-    <h2>How to use</h2>
+    <div class="toggle-row">
+      <label><input type="checkbox" id="toggleDN" checked onchange="toggleLayers()"> Show DN Districts</label>
+      <label><input type="checkbox" id="toggleWards" checked onchange="toggleLayers()"> Show Wards</label>
+    </div>
+
+    <h2>DN Postcode Districts</h2>
+    <div class="dn-card dn15" onclick="focusArea('DN15')"><span class="dn-badge">DN15</span><strong>Central & SE Scunthorpe</strong><span style="font-size:11px;color:#555">Town centre, Frodingham, Brumby, Crosby south, Winterton Rd. Click to zoom.</span></div>
+    <div class="dn-card dn16" onclick="focusArea('DN16')"><span class="dn-badge">DN16</span><strong>West & SW</strong><span style="font-size:11px;color:#555">Ashby, Bottesford, Lakeside, Hospital, Holme Hall.</span></div>
+    <div class="dn-card dn17" onclick="focusArea('DN17')"><span class="dn-badge">DN17</span><strong>North & Villages</strong><span style="font-size:11px;color:#555">Gunness, Burringham, Althorpe, Keadby, Messingham, Crowle.</span></div>
+
+    <h2>Wards (Scunthorpe Constituency 2024)</h2>
+    <div id="wardList"></div>
+
     <div class="note">
-      1. Type a street name or full postcode (e.g. DN15 7TA) and click Search – uses OpenStreetMap.<br>
-      2. Click a DN card to zoom to that district.<br>
-      3. To download: File → Save As → Complete Webpage. Works offline except map tiles need internet.<br>
-      4. For printable PDF, use your browser's Print → Save as PDF.<br><br>
-      <strong>DN = Doncaster Postal Area.</strong> Scunthorpe uses DN15, DN16, DN17. Telephone code: 01724.<br>
-      Boundaries shown are approximate for guidance – always verify with Royal Mail for legal addressing.
+      <b>How ward detection works:</b><br>
+      • When you search a street, we get lat/lon from OpenStreetMap, then run point-in-polygon against approximate ward boundaries (North Lincolnshire Council 2023 review).<br>
+      • Result shows: <span class="pill pill-postcode">Postcode</span> <span class="pill pill-dn">DN</span> <span class="pill pill-ward">Ward</span><br>
+      • Ward boundaries are <b>approximate</b> for guidance. For legal electoral roll / planning, check North Lincolnshire Council: northlincs.gov.uk<br><br>
+      <b>Current Scunthorpe Wards (2023):</b> Ashby Central, Ashby Lakeside, Bottesford, Brumby, Burringham & Gunness, Burton upon Stather & Winterton, Crosby & Park, Frodingham, Kingsway with Lincoln Gardens, Messingham, Ridge, Town [Source: Wikipedia/ BBC 2024 boundary review]<br><br>
+      <b>Save offline:</b> File → Save As → Webpage Complete. Map tiles need internet, but ward logic works offline.
     </div>
   </div>
   <div id="map"></div>
 </div>
 
 <script>
-const map = L.map('map').setView([53.589, -0.654], 13);
+// ---- MAP SETUP ----
+const map = L.map('map').setView([53.585, -0.654], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors | DN boundaries approximate',
+  attribution: '© OpenStreetMap | DN & Wards approximate | North Lincs Council',
   maxZoom: 19
 }).addTo(map);
 
-// Approximate DN district polygons for Scunthorpe (simplified)
-const dn15Poly = L.polygon([
-  [53.605, -0.70], [53.605, -0.60], [53.56, -0.60], [53.56, -0.70]
-], {color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 0.15, weight: 2, dashArray: '6,4'}).addTo(map).bindPopup('<b>DN15</b> – Central / SE Scunthorpe<br>Town Centre, Frodingham');
+const dnLayer = L.layerGroup().addTo(map);
+const wardLayer = L.layerGroup().addTo(map);
 
-const dn16Poly = L.polygon([
-  [53.56, -0.70], [53.56, -0.60], [53.53, -0.60], [53.53, -0.70]
-], {color: '#16a34a', fillColor: '#22c55e', fillOpacity: 0.15, weight: 2, dashArray: '6,4'}).addTo(map).bindPopup('<b>DN16</b> – West / SW Scunthorpe<br>Ashby, Bottesford, Hospital');
+// DN polygons (simplified)
+const dnPolys = {
+  DN15: L.polygon([[53.605,-0.70],[53.605,-0.60],[53.56,-0.60],[53.56,-0.70]], {color:'#2563eb',fillColor:'#3b82f6',fillOpacity:0.12,weight:2,dashArray:'6,4'}).bindPopup('<b>DN15</b> – Central/SE'),
+  DN16: L.polygon([[53.56,-0.70],[53.56,-0.60],[53.53,-0.60],[53.53,-0.70]], {color:'#16a34a',fillColor:'#22c55e',fillOpacity:0.12,weight:2,dashArray:'6,4'}).bindPopup('<b>DN16</b> – West/SW'),
+  DN17: L.polygon([[53.65,-0.80],[53.65,-0.60],[53.605,-0.60],[53.605,-0.80]], {color:'#ea580c',fillColor:'#f97316',fillOpacity:0.10,weight:2,dashArray:'6,4'}).bindPopup('<b>DN17</b> – North')
+};
+Object.values(dnPolys).forEach(p=>p.addTo(dnLayer));
 
-const dn17Poly = L.polygon([
-  [53.65, -0.80], [53.65, -0.60], [53.605, -0.60], [53.605, -0.80]
-], {color: '#ea580c', fillColor: '#f97316', fillOpacity: 0.12, weight: 2, dashArray: '6,4'}).addTo(map).bindPopup('<b>DN17</b> – North Scunthorpe<br>Gunness, Burringham, Messingham, Crowle');
+// ---- WARD DEFINITIONS (approximate) ----
+const wards = [
+  { name:'Town', color:'#1e3a8a', coords:[[53.5845,-0.662],[53.5845,-0.642],[53.5915,-0.642],[53.5915,-0.662]], desc:'Town Centre, High St, Foundry Centre, Station. DN15', dn:'DN15' },
+  { name:'Crosby & Park', color:'#7c3aed', coords:[[53.5915,-0.682],[53.5915,-0.655],[53.603,-0.655],[53.603,-0.682]], desc:'Crosby, Park, north-west of centre. DN15', dn:'DN15' },
+  { name:'Frodingham', color:'#0ea5e9', coords:[[53.580,-0.642],[53.580,-0.610],[53.595,-0.610],[53.595,-0.642]], desc:'Frodingham, east Scunthorpe. DN15', dn:'DN15' },
+  { name:'Brumby', color:'#dc2626', coords:[[53.572,-0.642],[53.572,-0.615],[53.5845,-0.615],[53.5845,-0.642]], desc:'Brumby, south-east central. DN15', dn:'DN15' },
+  { name:'Kingsway with Lincoln Gardens', color:'#db2777', coords:[[53.560,-0.680],[53.560,-0.630],[53.572,-0.630],[53.572,-0.680]], desc:'Kingsway, Lincoln Gardens, south Scunthorpe. DN15/DN16', dn:'DN15/DN16' },
+  { name:'Ashby Central', color:'#059669', coords:[[53.560,-0.700],[53.560,-0.680],[53.575,-0.680],[53.575,-0.700]], desc:'Ashby Central, near Grange Lane. DN16', dn:'DN16' },
+  { name:'Ashby Lakeside', color:'#047857', coords:[[53.540,-0.710],[53.540,-0.670],[53.560,-0.670],[53.560,-0.710]], desc:'Lakeside, Holme Hall, south-west. DN16', dn:'DN16' },
+  { name:'Bottesford', color:'#65a30d', coords:[[53.545,-0.745],[53.545,-0.710],[53.575,-0.710],[53.575,-0.745]], desc:'Bottesford, Bottesford Moor, west. DN16', dn:'DN16' },
+  { name:'Burringham & Gunness', color:'#ea580c', coords:[[53.603,-0.730],[53.603,-0.610],[53.635,-0.610],[53.635,-0.730]], desc:'Gunness, Burringham, north bank Trent. DN17', dn:'DN17' },
+  { name:'Burton upon Stather & Winterton', color:'#d97706', coords:[[53.605,-0.610],[53.605,-0.48],[53.670,-0.48],[53.670,-0.610]], desc:'Burton upon Stather, Winterton, Thealby, Roxby. DN15', dn:'DN15' },
+  { name:'Messingham', color:'#ca8a04', coords:[[53.520,-0.695],[53.520,-0.620],[53.560,-0.620],[53.560,-0.695]], desc:'Messingham, East/West Butterwick, Scawby edge. DN17', dn:'DN17' },
+  { name:'Ridge', color:'#57534e', coords:[[53.460,-0.650],[53.460,-0.430],[53.520,-0.430],[53.520,-0.650]], desc:'Kirton in Lindsey, Hibaldstow, Redbourne. DN21/DN15 fringe', dn:'DN15/DN21' },
+];
 
-const townCentre = L.marker([53.5887, -0.6523]).addTo(map).bindPopup('<b>Scunthorpe Town Centre</b><br>DN15');
+const wardPolygons = {};
+const wardListDiv = document.getElementById('wardList');
+const wardSelect = document.getElementById('wardSelect');
+
+wards.forEach(w=>{
+  const poly = L.polygon(w.coords, {color:w.color, fillColor:w.color, fillOpacity:0.18, weight:2}).addTo(wardLayer);
+  poly.bindPopup(`<b>Ward: ${w.name}</b><br>${w.desc}<br><small>DN: ${w.dn}</small>`);
+  wardPolygons[w.name]=poly;
+
+  // Add to dropdown
+  const opt = document.createElement('option');
+  opt.value=w.name; opt.textContent=w.name;
+  wardSelect.appendChild(opt);
+
+  // Add card
+  const card = document.createElement('div');
+  card.className='ward-card';
+  card.style.borderLeftColor=w.color;
+  card.innerHTML=`<span class="ward-badge" style="background:${w.color}">${w.name}</span><br><span style="font-size:11px;color:#555">${w.desc}</span><br><span class="pill pill-dn" style="margin-top:4px;display:inline-block">${w.dn}</span>`;
+  card.onclick=()=>focusWard(w.name);
+  wardListDiv.appendChild(card);
+});
+
+// Point in polygon (ray casting)
+function pointInPolygon(lat, lon, polyCoords){
+  let inside=false;
+  for(let i=0,j=polyCoords.length-1;i<polyCoords.length;j=i++){
+    const xi=polyCoords[i][1], yi=polyCoords[i][0];
+    const xj=polyCoords[j][1], yj=polyCoords[j][0];
+    const intersect = ((yi>lat)!=(yj>lat)) && (lon < (xj-xi)*(lat-yi)/(yj-yi)+xi);
+    if(intersect) inside=!inside;
+  }
+  return inside;
+}
+function getWardForPoint(lat,lon){
+  for(const w of wards){
+    if(pointInPolygon(lat,lon,w.coords)) return w;
+  }
+  return null;
+}
+function getDNForPoint(lat,lon){
+  if(lat>=53.56 && lat<=53.605 && lon>=-0.70 && lon<=-0.60) return 'DN15';
+  if(lat>=53.53 && lat<53.56 && lon>=-0.70 && lon<=-0.60) return 'DN16';
+  if(lat>53.605 && lon>=-0.80 && lon<=-0.60) return 'DN17';
+  return 'DN (outside town)';
+}
+
+// Map controls
+function toggleLayers(){
+  if(document.getElementById('toggleDN').checked) map.addLayer(dnLayer); else map.removeLayer(dnLayer);
+  if(document.getElementById('toggleWards').checked) map.addLayer(wardLayer); else map.removeLayer(wardLayer);
+}
+function focusArea(code){
+  if(dnPolys[code]) map.fitBounds(dnPolys[code].getBounds());
+}
+function focusWard(name){
+  const p=wardPolygons[name];
+  if(p){ map.fitBounds(p.getBounds()); p.openPopup(); }
+}
+function focusSelectedWard(){
+  const name=wardSelect.value;
+  if(name) focusWard(name);
+}
+function searchWardByName(){
+  const q=document.getElementById('wardSearchInput').value.toLowerCase().trim();
+  if(!q) return;
+  const found=wards.find(w=>w.name.toLowerCase().includes(q));
+  if(found) focusWard(found.name);
+  else alert('Ward not found. Try: Ashby, Bottesford, Brumby, Burringham, Burton, Crosby, Frodingham, Kingsway, Messingham, Ridge, Town');
+}
+
+// Search street
+let searchMarker=null;
+async function searchStreet(){
+  const q=document.getElementById('searchInput').value.trim();
+  if(!q) return;
+  const resultsDiv=document.getElementById('searchResults');
+  resultsDiv.innerHTML='Searching...';
+  try{
+    const url=`https://nominatim.openstreetmap.org/search?format=json&limit=8&q=${encodeURIComponent(q+' Scunthorpe')}&addressdetails=1`;
+    const res=await fetch(url,{headers:{'Accept-Language':'en'}});
+    const data=await res.json();
+    if(!data.length){
+      resultsDiv.innerHTML='<div style="font-size:12px;color:#777">No results. Try full postcode e.g. DN15 7TA or add "Scunthorpe".</div>';
+      return;
+    }
+    resultsDiv.innerHTML='';
+    data.forEach(item=>{
+      const lat=parseFloat(item.lat), lon=parseFloat(item.lon);
+      const postcode=item.address?.postcode||'No postcode';
+      const dnPostcode=postcode.startsWith('DN')?postcode.split(' ')[0]:getDNForPoint(lat,lon);
+      const wardObj=getWardForPoint(lat,lon);
+      const wardName=wardObj?wardObj.name:'Outside mapped wards';
+      const wardDN=wardObj?wardObj.dn:'—';
+      const el=document.createElement('div');
+      el.className='result-item';
+      el.innerHTML=`<b>${item.display_name.split(',').slice(0,3).join(',')}</b><br>
+        <span class="pill pill-postcode">${postcode}</span>
+        <span class="pill pill-dn">${dnPostcode}</span>
+        <span class="pill pill-ward">${wardName}</span><br>
+        <small style="color:#666">${item.type} • Lat ${lat.toFixed(4)}, Lon ${lon.toFixed(4)} ${wardObj? '• '+wardObj.desc:''}</small>`;
+      el.onclick=()=>{
+        if(searchMarker) map.removeLayer(searchMarker);
+        searchMarker=L.marker([lat,lon]).addTo(map).bindPopup(`<b>${item.display_name}</b><br>
+          <b>Postcode:</b> ${postcode}<br>
+          <b>DN Area:</b> ${dnPostcode}<br>
+          <b>Ward:</b> ${wardName}<br>
+          <small>${wardObj?wardObj.desc:''}</small>`).openPopup();
+        map.setView([lat,lon],16);
+        if(wardObj) wardPolygons[wardObj.name].setStyle({fillOpacity:0.35, weight:3});
+        setTimeout(()=>{ if(wardObj) wardPolygons[wardObj.name].setStyle({fillOpacity:0.18, weight:2}); }, 2500);
+      };
+      resultsDiv.appendChild(el);
+    });
+  }catch(e){
+    resultsDiv.innerHTML='Search failed (offline?). Try again with internet.';
+    console.error(e);
+  }
+}
+document.getElementById('searchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') searchStreet(); });
+document.getElementById('wardSearchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') searchWardByName(); });
 
 // Legend
-const legend = L.control({position: 'bottomright'});
-legend.onAdd = function() {
-  const div = L.DomUtil.create('div', 'legend');
-  div.innerHTML = `
-    <b>DN Districts</b><br>
-    <i style="background:#3b82f680; border:1px solid #2563eb"></i> DN15 Central/SE<br>
-    <i style="background:#22c55e80; border:1px solid #16a34a"></i> DN16 West/SW<br>
-    <i style="background:#f9731680; border:1px solid #ea580c"></i> DN17 North
-  `;
+const legend=L.control({position:'bottomright'});
+legend.onAdd=function(){
+  const div=L.DomUtil.create('div','legend');
+  let html='<b>Layers</b><br><b>DN:</b><br>';
+  html+='<i style="background:#3b82f680;border:1px solid #2563eb"></i> DN15<br><i style="background:#22c55e80;border:1px solid #16a34a"></i> DN16<br><i style="background:#f9731680;border:1px solid #ea580c"></i> DN17<br><br><b>Wards:</b><br>';
+  wards.forEach(w=>{ html+=`<i style="background:${w.color}80;border:1px solid ${w.color}"></i> ${w.name}<br>`; });
+  div.innerHTML=html;
   return div;
 };
 legend.addTo(map);
 
-let searchMarker = null;
-
-function focusArea(code) {
-  if(code==='DN15') map.fitBounds(dn15Poly.getBounds());
-  if(code==='DN16') map.fitBounds(dn16Poly.getBounds());
-  if(code==='DN17') map.fitBounds(dn17Poly.getBounds());
-}
-
-async function searchStreet() {
-  const q = document.getElementById('searchInput').value.trim();
-  if(!q) return;
-  const resultsDiv = document.getElementById('searchResults');
-  resultsDiv.innerHTML = 'Searching...';
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=8&q=${encodeURIComponent(q + ' Scunthorpe')}&addressdetails=1`;
-    const res = await fetch(url, {headers: {'Accept-Language': 'en'}});
-    const data = await res.json();
-    if(!data.length) {
-      resultsDiv.innerHTML = '<div style="font-size:13px;color:#777">No results in Scunthorpe area. Try full postcode or add "Scunthorpe".</div>';
-      return;
-    }
-    resultsDiv.innerHTML = '';
-    data.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'result-item';
-      const postcode = item.address?.postcode || 'No postcode';
-      const dn = postcode.startsWith('DN') ? postcode.split(' ')[0] : '—';
-      el.innerHTML = `<strong>${item.display_name.split(',').slice(0,3).join(',')}</strong><br><small>${postcode} • DN Area: ${dn} • ${item.type}</small>`;
-      el.onclick = () => {
-        if(searchMarker) map.removeLayer(searchMarker);
-        searchMarker = L.marker([item.lat, item.lon]).addTo(map).bindPopup(`<b>${item.display_name}</b><br>Postcode: ${postcode}<br><b>DN: ${dn}</b>`).openPopup();
-        map.setView([item.lat, item.lon], 16);
-      };
-      resultsDiv.appendChild(el);
-    });
-  } catch(e) {
-    resultsDiv.innerHTML = 'Search failed (offline?). Try again with internet.';
-  }
-}
-document.getElementById('searchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') searchStreet(); });
+L.marker([53.5887,-0.6523]).addTo(map).bindPopup('<b>Scunthorpe Town Centre</b><br>DN15 • Town Ward');
 </script>
 </body>
 </html>
